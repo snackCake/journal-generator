@@ -6,20 +6,21 @@ import scala.io.Source
  */
 class JournalGenerator(val sourceTitles: Iterable[String]) {
   def generateTitle(wordCount: Int = 5): String = {
-    val indexFrequencyMap: Seq[Map[String, Int]] = buildIndexedFrequencyMap
-    (0 to wordCount - 1).map {
-      index =>
-      indexFrequencyMap(index).foldLeft(("", 0)) {
+    val indexFrequencyMap = buildIndexedFrequencyMap
+    val nameBuffer = mutable.Buffer[String]()
+    for (i <- 0 to wordCount - 1) {
+      nameBuffer += indexFrequencyMap(i).foldLeft(("", 0)) {
         (previousWordCount: (String, Int), wordCount: (String, Int)) =>
-          if (wordCount._2 > previousWordCount._2) wordCount else previousWordCount
+          if (wordCount._2 > previousWordCount._2 && !nameBuffer.contains(wordCount._1)) wordCount else previousWordCount
       }._1
-    }.mkString(" ")
+    }
+    nameBuffer.mkString(" ")
   }
 
   private def buildIndexedFrequencyMap: Seq[Map[String, Int]] = {
-    val indexFrequencyMap: mutable.Buffer[mutable.Map[String, Int]] = mutable.Buffer[mutable.Map[String, Int]]()
+    val indexFrequencyMap = mutable.Buffer[mutable.Map[String, Int]]()
     val splitTitles = sourceTitles.map(_.split("\\s+"))
-    val maxTitleWords = splitTitles.foldLeft(0)((oldMax: Int, words: Array[String]) => math.max(oldMax, words.length))
+    val maxTitleWords = splitTitles.foldLeft(0)((oldMax, words) => math.max(oldMax, words.length))
     (0 to maxTitleWords - 1).foreach {
       wordColumn =>  indexFrequencyMap += mutable.Map[String, Int]()
     }
