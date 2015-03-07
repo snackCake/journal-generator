@@ -6,6 +6,10 @@ import scala.io.Source
  */
 class JournalGenerator(val sourceTitles: Iterable[String]) {
 
+  private type IndexFrequencyMap = Seq[Map[String, Int]]
+  private type MutableIndexFrequencyMap = mutable.Buffer[mutable.Map[String, Int]]
+  private type WordCount = (String, Int)
+
   private def noEndWords = Seq("the", "and", "in")
 
   private def normalizeWordRules = Map(
@@ -20,29 +24,55 @@ class JournalGenerator(val sourceTitles: Iterable[String]) {
     matchingRules.lastOption.fold(sourceWord) { normalizeWordRules.get(_).get }
   }
 
-  def generateTitle(wordCount: Int = 5): String = {
-    val indexFrequencyMap = buildIndexedFrequencyMap
-    val nameBuffer = mutable.Buffer[String]()
+  def generateTitle(wordCount: Int = 9, minimumWordFrequency: Int = 1, topWordCount: Int =  3): String = {
+    val indexFrequencyMap = buildIndexFrequencyMap
+    val nameBuffer = mutable.Buffer[Seq[String]]()
+
     for (i <- 0 to wordCount - 1) {
-      nameBuffer += indexFrequencyMap(i).foldLeft(("", 0)) {
-        case ((oldWord, oldWordCount), (newWord, newWordCount)) =>
-          if (newWordCount > oldWordCount &&
-            duplicateCheck(nameBuffer, newWord) &&
-            endWordCheck(newWord, i, wordCount)) {
-            (newWord, newWordCount)
-          } else {
-            (oldWord, oldWordCount)
-          }
-      }._1
+      nameBuffer += indexFrequencyMap(i).foldLeft(Seq(("", 0))) {
+        case (oldWords: Seq[WordCount], newWordTuple: WordCount) =>
+          updateTopWordsInColumn(wordCount, topWordCount, i, oldWords, newWordTuple)
+      }.map(_._1)
     }
-    nameBuffer.map(_.capitalize).mkString(" ")
+
+    selectWords(nameBuffer)
+      .map(_.capitalize)
+      .mkString(" ")
   }
 
-  private def endWordCheck(newWord: String, currentIndex: Int, wordCount: Int): Boolean = {
-    currentIndex < wordCount - 1 || !noEndWords.contains(newWord)
+  private def updateTopWordsInColumn(wordCount: Int, topWordCount: Int, column: Int, oldWords: Seq[WordCount], newWordTuple: WordCount): Seq[WordCount] = {
+    val (newWord, newWordCount) = newWordTuple
+    val oldWordCounts = oldWords.map(_._2)
+    val minWordCount = oldWordCounts.min
+    val columnNotFull = oldWords.size < topWordCount
+    val newWordMoreFrequent = newWordCount > minWordCount
+    val validInColumn = isWordValidInColumn(newWord, column, wordCount)
+    if (columnNotFull && validInColumn) {
+      oldWords :+ newWord -> newWordCount
+    } else if (newWordMoreFrequent && validInColumn) {
+      val oldMinIndex = oldWordCounts.indexOf(minWordCount)
+      oldWords.updated(oldMinIndex, newWord -> newWordCount)
+    } else {
+      oldWords
+    }
   }
 
-  private def duplicateCheck(currentWords: mutable.Buffer[String], newWord: String): Boolean = {
+  private def selectWords(nameBuffer: Seq[Seq[String]]): Seq[String] =
+    nameBuffer.foldLeft(Seq[String]()) {
+      (currentWords, potentialWords) =>
+        potentialWords.filter(isNewWordUnused(currentWords, _)) match {
+          case nonDuplicatePotentialWords if nonDuplicatePotentialWords.length > 0 =>
+            currentWords :+ scala.util.Random.shuffle(nonDuplicatePotentialWords).head
+          case _ =>
+            currentWords
+        }
+    }
+
+  private def isWordValidInColumn(newWord: String, currentColumn: Int, columnCount: Int): Boolean =
+    currentColumn < columnCount - 1 || !noEndWords.contains(newWord)
+
+  // TODO: Figure out what this is trying to do. Why the shenanigans with suffixes?
+  private def isNewWordUnused(currentWords: Seq[String], newWord: String): Boolean = {
     !currentWords.exists {
       currentWord =>
         val potentialSuffix = currentWord match {
@@ -54,27 +84,33 @@ class JournalGenerator(val sourceTitles: Iterable[String]) {
     }
   }
 
-  private def buildIndexedFrequencyMap: Seq[Map[String, Int]] = {
-    val indexFrequencyMap = mutable.Buffer[mutable.Map[String, Int]]()
-    val splitTitles = sourceTitles.map(_.split("\\s+"))
-    val maxTitleWords = splitTitles.foldLeft(0) {
-      (oldMax, words) => math.max(oldMax, words.length)
-    }
-    (0 to maxTitleWords - 1).foreach {
-      wordColumn => indexFrequencyMap += mutable.Map[String, Int]()
-    }
+  private def buildIndexFrequencyMap: Seq[Map[String, Int]] = {
+    val splitTitles: Iterable[Array[String]] = sourceTitles.map(_.split("\\s+"))
+    val indexFrequencyMap = buildEmptyIndexFrequencyMap(splitTitles)
     splitTitles.foreach {
       splitTitle =>
         var wordIndex = 0
         splitTitle.foreach {
           word =>
             val frequencyMap = indexFrequencyMap(wordIndex)
-            val newCount = frequencyMap.get(word).fold(1)(_ + 1)
-            frequencyMap.put(normalizeWord(word), newCount)
+            val normalizedWord = normalizeWord(word)
+            val newCount = frequencyMap.get(normalizedWord).fold(1)(_ + 1)
+            frequencyMap.put(normalizedWord, newCount)
             wordIndex += 1
         }
     }
     indexFrequencyMap.toSeq.map(_.toMap[String, Int])
+  }
+
+  private def buildEmptyIndexFrequencyMap(splitTitles: Iterable[Array[String]]): MutableIndexFrequencyMap = {
+    val indexFrequencyMap = mutable.Buffer[mutable.Map[String, Int]]()
+    val maxTitleWords: Int = splitTitles.foldLeft(0) {
+      (oldMax, words) => math.max(oldMax, words.length)
+    }
+    (0 to maxTitleWords - 1).foreach {
+      wordColumn => indexFrequencyMap += mutable.Map[String, Int]()
+    }
+    indexFrequencyMap
   }
 }
 
@@ -83,7 +119,7 @@ object JournalGenerator {
     val sourceData = Source.fromURL("http://scholarlyoa.com/individual-journals/")
     val parser = new SourceTitleParser
     val generator = new JournalGenerator(parser.parse(sourceData))
-    val title = generator.generateTitle(9)
+    val title = generator.generateTitle()
     println(title)
   }
 }
