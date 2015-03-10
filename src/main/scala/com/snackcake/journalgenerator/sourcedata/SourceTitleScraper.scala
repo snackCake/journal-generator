@@ -1,10 +1,12 @@
+package com.snackcake.journalgenerator.sourcedata
 
-import org.jsoup.nodes.Document
 
-import scala.io.Source
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
+
 import scala.collection.JavaConverters._
+import scala.io.Source
 
 /**
  * A scraper that extracts titles from HTML at a configured URL, located at a configured element selector.

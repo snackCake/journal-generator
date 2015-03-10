@@ -1,5 +1,6 @@
+package com.snackcake.journalgenerator.generation
+
 import scala.collection.mutable
-import scala.io.Source
 
 /**
  * A generator that takes in a set of existing journal titles, analyzes them, and generates new titles by combining existing words.
@@ -7,24 +8,13 @@ import scala.io.Source
  * @param sourceTitles An iterable of names of existing journals to use as source data
  * @author Josh Klun (jmklun@gmail.com)
  */
-class JournalGenerator(val sourceTitles: Iterable[String]) {
-
-  private type IndexFrequencyMap = Seq[Map[String, Int]]
-  private type MutableIndexFrequencyMap = mutable.Buffer[mutable.Map[String, Int]]
-  private type WordCount = (String, Int)
+class JournalTitleGenerator(val sourceTitles: Iterable[String]) extends PositionFrequencyMapFactory {
 
   /**
    * @return Words that aren't allowed at the end of a generated title.
    */
   private def noEndWords = Seq("the", "and", "in")
 
-
-  /**
-   * @return A map of keys (sets of words) that should all be normalized to their values (single words) when encountered in a title.
-   */
-  private def normalizeWordRules = Map(
-    Set("and", "&") -> "and"
-  )
 
   /**
    * @return A sequence of suffix strings that may be found on the ends of words that can be used for basic stemming, to avoid duplicate
@@ -45,7 +35,7 @@ class JournalGenerator(val sourceTitles: Iterable[String]) {
    * @return A new, formatted title
    */
   def generateTitle(wordCount: Int = 9, minimumWordFrequency: Int = 3, topWordCount: Int =  5): String = {
-    val indexFrequencyMap = buildIndexFrequencyMap
+    val indexFrequencyMap = buildPositionFrequencyMap(sourceTitles)
     val nameBuffer = mutable.Buffer[Seq[String]]()
 
     for (i <- 0 to wordCount - 1) {
@@ -94,18 +84,6 @@ class JournalGenerator(val sourceTitles: Iterable[String]) {
 
 
   /**
-   * If the source word matches a normalization rule, return the target word of the rule, otherwise return the source word.
-   *
-   * @param sourceWord The word to match against the normalization rules
-   * @return The normalized word, or the source word if it didn't need to be normalized.
-   */
-  private def normalizeWord(sourceWord: String): String = {
-    val lowerSourceWord = sourceWord.toLowerCase
-    val matchingRules = normalizeWordRules.keys.filter(_.contains(lowerSourceWord))
-    matchingRules.lastOption.fold(sourceWord) { normalizeWordRules.get(_).get }
-  }
-
-  /**
    * Select the words for the title from the given sequence of sequences of top words.
    *
    * @param topWordsPerPosition A sequence, representing the positions in the input titles, containing sequences of top words in those
@@ -147,54 +125,4 @@ class JournalGenerator(val sourceTitles: Iterable[String]) {
     }
   }
 
-  /**
-   * Based on the input titles, build an index frequency map. Each entry in the sequence represents a position in the source titles. Each
-   * entry is a map of source title words to counts for how frequent the word is in a given position.
-   *
-   * @return A new index frequency map for the input titles.
-   */
-  private def buildIndexFrequencyMap: Seq[Map[String, Int]] = {
-    val splitTitles: Iterable[Array[String]] = sourceTitles.map(_.split("\\s+"))
-    val indexFrequencyMap = buildEmptyIndexFrequencyMap(splitTitles)
-    splitTitles.foreach {
-      splitTitle =>
-        var wordIndex = 0
-        splitTitle.foreach {
-          word =>
-            val frequencyMap = indexFrequencyMap(wordIndex)
-            val normalizedWord = normalizeWord(word)
-            val newCount = frequencyMap.get(normalizedWord).fold(1)(_ + 1)
-            frequencyMap.put(normalizedWord, newCount)
-            wordIndex += 1
-        }
-    }
-    indexFrequencyMap.toSeq.map(_.toMap[String, Int])
-  }
-
-  /**
-   * @return A new empty structure with enough space for the index frequency map for the given source titles
-   */
-  private def buildEmptyIndexFrequencyMap(splitTitles: Iterable[Array[String]]): MutableIndexFrequencyMap = {
-    val indexFrequencyMap = mutable.Buffer[mutable.Map[String, Int]]()
-    val maxTitleWords: Int = splitTitles.foldLeft(0) {
-      (oldMax, words) => math.max(oldMax, words.length)
-    }
-    (0 to maxTitleWords - 1).foreach {
-      wordPosition => indexFrequencyMap += mutable.Map[String, Int]()
-    }
-    indexFrequencyMap
-  }
-}
-
-object JournalGenerator {
-
-  /**
-   * Main method for testing.
-   */
-  def main(args: Array[String]) {
-    val parser = new SourceTitleScraper("http://scholarlyoa.com/individual-journals/", "div.entry ul a")
-    val generator = new JournalGenerator(parser.scrape)
-    val title = generator.generateTitle()
-    println(title)
-  }
 }
