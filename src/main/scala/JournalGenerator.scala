@@ -18,13 +18,7 @@ class JournalGenerator(val sourceTitles: Iterable[String]) {
 
   private def suffixes = Seq("s", "es", "ing", "ed")
 
-  private def normalizeWord(sourceWord: String): String = {
-    val lowerSourceWord = sourceWord.toLowerCase
-    val matchingRules = normalizeWordRules.keys.filter(_.contains(lowerSourceWord))
-    matchingRules.lastOption.fold(sourceWord) { normalizeWordRules.get(_).get }
-  }
-
-  def generateTitle(wordCount: Int = 9, minimumWordFrequency: Int = 1, topWordCount: Int =  3): String = {
+  def generateTitle(wordCount: Int = 9, minimumWordFrequency: Int = 3, topWordCount: Int =  5): String = {
     val indexFrequencyMap = buildIndexFrequencyMap
     val nameBuffer = mutable.Buffer[Seq[String]]()
 
@@ -38,6 +32,12 @@ class JournalGenerator(val sourceTitles: Iterable[String]) {
     selectWords(nameBuffer)
       .map(_.capitalize)
       .mkString(" ")
+  }
+
+  private def normalizeWord(sourceWord: String): String = {
+    val lowerSourceWord = sourceWord.toLowerCase
+    val matchingRules = normalizeWordRules.keys.filter(_.contains(lowerSourceWord))
+    matchingRules.lastOption.fold(sourceWord) { normalizeWordRules.get(_).get }
   }
 
   private def updateTopWordsInColumn(wordCount: Int, topWordCount: Int, column: Int, oldWords: Seq[WordCount], newWordTuple: WordCount): Seq[WordCount] = {
@@ -116,9 +116,8 @@ class JournalGenerator(val sourceTitles: Iterable[String]) {
 
 object JournalGenerator {
   def main(args: Array[String]) {
-    val sourceData = Source.fromURL("http://scholarlyoa.com/individual-journals/")
-    val parser = new SourceTitleParser
-    val generator = new JournalGenerator(parser.parse(sourceData))
+    val parser = new SourceTitleParser("http://scholarlyoa.com/individual-journals/", "div.entry ul a")
+    val generator = new JournalGenerator(parser.parse)
     val title = generator.generateTitle()
     println(title)
   }
