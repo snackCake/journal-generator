@@ -1,6 +1,6 @@
 package com.snackcake.journalgenerator
 
-import com.snackcake.journalgenerator.generation.JournalTitleGenerator
+import com.snackcake.journalgenerator.generation.PositionFrequencyJournalTitleGenerator
 import com.snackcake.journalgenerator.sourcedata.SourceTitleScraper
 
 /**
@@ -15,7 +15,7 @@ object TestApplication {
    */
   def main(args: Array[String]) {
     val scraper = new SourceTitleScraper("http://scholarlyoa.com/individual-journals/", "div.entry ul a")
-    val generator = new JournalTitleGenerator(scraper.scrape)
+    val generator = new PositionFrequencyJournalTitleGenerator(scraper.scrape)
     val title = generator.generateTitle()
     println(title)
   }
