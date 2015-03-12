@@ -14,8 +14,8 @@ object TestApplication {
    * Main method for testing.
    */
   def main(args: Array[String]) {
-    val parser = new SourceTitleScraper("http://scholarlyoa.com/individual-journals/", "div.entry ul a")
-    val generator = new JournalTitleGenerator(parser.scrape)
+    val scraper = new SourceTitleScraper("http://scholarlyoa.com/individual-journals/", "div.entry ul a")
+    val generator = new JournalTitleGenerator(scraper.scrape)
     val title = generator.generateTitle()
     println(title)
   }
