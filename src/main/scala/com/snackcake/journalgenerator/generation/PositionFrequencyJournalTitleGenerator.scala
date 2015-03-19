@@ -50,12 +50,15 @@ class PositionFrequencyJournalTitleGenerator(val sourceTitles: Iterable[String],
    * @return A sequence of words that can be combined to make a title
    */
   private def selectWords(topWordsPerPosition: Seq[Seq[String]]): Seq[String] =
-    topWordsPerPosition.foldLeft(Seq[String]()) {
-      case (currentWords, potentialWords) =>
+    topWordsPerPosition.zipWithIndex.foldLeft(Seq[String]()) {
+      case (currentWords, (potentialWords, position)) =>
         val positionCandidates = potentialWords.foldLeft(Seq[String]()) {
+          // If the current list of candidates is smaller than the max per position…
           case (validWords, word) if validWords.size < topWordCandidateCount &&
+            // and the word hasn't been used yet, in some form…
             isNewWordUnused(currentWords, word) &&
-            isWordValidInPosition(word, currentWords.size, topWordCandidateCount) => validWords :+ word
+            // and the word is legal in this position, accounting for the fact that the planned output may be shorter than requested.
+            isWordValidInPosition(word, currentWords.size, topWordsPerPosition.length - (position - currentWords.size)) => validWords :+ word
           case (validWords, _) => validWords
         }
         positionCandidates match {
@@ -77,17 +80,26 @@ class PositionFrequencyJournalTitleGenerator(val sourceTitles: Iterable[String],
   private def isWordValidInPosition(newWord: String, currentPosition: Int, positionCount: Int): Boolean =
     currentPosition < positionCount - 1 || !noEndWords.contains(newWord)
 
-  // TODO: Figure out what this is trying to do. Why the shenanigans with suffixes?
+  /**
+   * Is the new candidate word, or its stem word unused in the current list of output words?
+   *
+   * @param currentWords Current output words
+   * @param newWord New candidate word
+   * @return true if the word is unused, false if already used.
+   */
   private def isNewWordUnused(currentWords: Seq[String], newWord: String): Boolean = {
-    !currentWords.exists {
-      currentWord =>
-        val potentialSuffix = currentWord match {
-          case word if word.length > newWord.length => Some(word.substring(newWord.length))
-          case word if word.length < newWord.length => Some(newWord.substring(word.length))
-          case word if word.length == newWord.length => None
-        }
-        potentialSuffix.fold(currentWords.contains(newWord))(suffixes.contains(_))
-    }
+    val newWordStem = stemWord(newWord)
+    !currentWords.exists(currentWord => stemWord(currentWord) == newWordStem)
   }
 
+  /**
+   * @return The input word's stem, or the word itself, if it can't be stemmed.
+   */
+  private def stemWord(word: String): String =
+    suffixes
+      .filter(word.endsWith)
+      .map(suffix => word.substring(0, word.length - suffix.length))
+      .sortWith(_.length > _.length)
+      .headOption
+      .getOrElse(word)
 }
