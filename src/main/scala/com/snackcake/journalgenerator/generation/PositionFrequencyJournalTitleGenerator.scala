@@ -1,19 +1,17 @@
 package com.snackcake.journalgenerator.generation
 
-import scala.collection.mutable
-
 /**
  * A generator that takes in a set of existing journal titles, analyzes them, and generates new titles by combining existing words.
  *
  * @param sourceTitles An iterable of names of existing journals to use as source data
  * @param minimumWordFrequency The minimum number of times a word must appear in a source title for it to be considered for an output
  *                             title. Default: 3
- * @param topWordCount The number of top words in a position to select from. Default: 5
+ * @param topWordCandidateCount The number of top words in a position to select from. Default: 5
  * @author Josh Klun (jmklun@gmail.com)
  */
 class PositionFrequencyJournalTitleGenerator(val sourceTitles: Iterable[String],
                                              val minimumWordFrequency: Int = 3,
-                                             val topWordCount: Int =  5) extends JournalTitleGenerator with PositionFrequencyMapFactory {
+                                             val topWordCandidateCount: Int =  5) extends JournalTitleGenerator with PositionFrequencyMapFactory {
 
   /**
    * @return Words that aren't allowed at the end of a generated title.
@@ -38,52 +36,11 @@ class PositionFrequencyJournalTitleGenerator(val sourceTitles: Iterable[String],
    */
   def generateTitle(wordCount: Int = 9): String = {
     val indexFrequencyMap = buildPositionFrequencyMap(sourceTitles)
-    val nameBuffer = mutable.Buffer[Seq[String]]()
-
-    for (i <- 0 to wordCount - 1) {
-      nameBuffer += indexFrequencyMap(i).foldLeft(Seq(("", 0))) {
-        case (oldWords: Seq[WordCount], newWordTuple: WordCount) =>
-          updateTopWordsInPosition(oldWords, newWordTuple, i, wordCount, topWordCount)
-      }.map(_._1)
-    }
-
+    val nameBuffer = indexFrequencyMap.map(_.filter(_._2 >= minimumWordFrequency).map(_._1))
     selectWords(nameBuffer)
       .map(_.capitalize)
       .mkString(" ")
   }
-
-  /**
-   * Given a sequence of current most popular [[WordCount]]s at a given position, decide whether a new [[WordCount]] should be added to the
-   * existing sequence of top words, and if so, returns the new sequence.
-   *
-   * @param positionCount The number of word positions in the output title
-   * @param topWordCount The number of top words to select from in this position
-   * @param position The position to update top words for
-   * @param oldWords The current top words for the position
-   * @param newWordTuple The new [[WordCount]] to potentially add to the position's sequence
-   * @return A potentially update sequence of word counts for the position
-   */
-  private def updateTopWordsInPosition(oldWords: Seq[WordCount],
-                                       newWordTuple: WordCount,
-                                       position: Int,
-                                       positionCount: Int,
-                                       topWordCount: Int): Seq[WordCount] = {
-    val (newWord, newWordCount) = newWordTuple
-    val oldWordCounts = oldWords.map(_._2)
-    val minWordCount = oldWordCounts.min
-    val positionSetNotFull = oldWords.size < topWordCount
-    val newWordMoreFrequent = newWordCount > minWordCount
-    val validInPosition = isWordValidInPosition(newWord, position, positionCount)
-    if (positionSetNotFull && validInPosition) {
-      oldWords :+ newWord -> newWordCount
-    } else if (newWordMoreFrequent && validInPosition) {
-      val oldMinIndex = oldWordCounts.indexOf(minWordCount)
-      oldWords.updated(oldMinIndex, newWord -> newWordCount)
-    } else {
-      oldWords
-    }
-  }
-
 
   /**
    * Select the words for the title from the given sequence of sequences of top words.
@@ -94,8 +51,14 @@ class PositionFrequencyJournalTitleGenerator(val sourceTitles: Iterable[String],
    */
   private def selectWords(topWordsPerPosition: Seq[Seq[String]]): Seq[String] =
     topWordsPerPosition.foldLeft(Seq[String]()) {
-      (currentWords, potentialWords) =>
-        potentialWords.filter(isNewWordUnused(currentWords, _)) match {
+      case (currentWords, potentialWords) =>
+        val positionCandidates = potentialWords.foldLeft(Seq[String]()) {
+          case (validWords, word) if validWords.size < topWordCandidateCount &&
+            isNewWordUnused(currentWords, word) &&
+            isWordValidInPosition(word, currentWords.size, topWordCandidateCount) => validWords :+ word
+          case (validWords, _) => validWords
+        }
+        positionCandidates match {
           case nonDuplicatePotentialWords if nonDuplicatePotentialWords.length > 0 =>
             currentWords :+ scala.util.Random.shuffle(nonDuplicatePotentialWords).head
           case _ =>
