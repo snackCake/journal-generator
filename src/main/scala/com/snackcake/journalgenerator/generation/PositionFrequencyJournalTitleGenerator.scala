@@ -59,7 +59,7 @@ class PositionFrequencyJournalTitleGenerator(val sourceTitles: Iterable[String],
           case (validWords, _) => validWords
         }
         positionCandidates match {
-          case nonDuplicatePotentialWords if nonDuplicatePotentialWords.length > 0 =>
+          case nonDuplicatePotentialWords if nonDuplicatePotentialWords.nonEmpty =>
             currentWords :+ scala.util.Random.shuffle(nonDuplicatePotentialWords).head
           case _ =>
             currentWords
