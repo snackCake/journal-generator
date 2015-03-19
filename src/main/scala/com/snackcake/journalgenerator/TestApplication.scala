@@ -15,7 +15,7 @@ object TestApplication {
    */
   def main(args: Array[String]) {
     val scraper = new SourceTitleScraper("http://scholarlyoa.com/individual-journals/", "div.entry ul a")
-    val generator = new PositionFrequencyJournalTitleGenerator(scraper.scrape, 1, 1)
+    val generator = new PositionFrequencyJournalTitleGenerator(scraper.scrape, 3, 5)
     val title = generator.generateTitle()
     println(title)
   }

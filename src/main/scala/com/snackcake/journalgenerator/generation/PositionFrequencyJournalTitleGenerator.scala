@@ -31,13 +31,13 @@ class PositionFrequencyJournalTitleGenerator(val sourceTitles: Iterable[String],
    * This implementation looks at the frequency of words in any given position in source titles and chooses from the most popular
    * words for a the current index.
    *
-   * @param wordCount The target / maximum number of words for the output title. Default: 9
+   * @param targetWordCount The target / maximum number of words for the output title. Default: 9
    * @return A new, formatted title
    */
-  def generateTitle(wordCount: Int = 9): String = {
+  def generateTitle(targetWordCount: Int = 9): String = {
     val indexFrequencyMap = buildPositionFrequencyMap(sourceTitles)
     val nameBuffer = indexFrequencyMap.map(_.filter(_._2 >= minimumWordFrequency).map(_._1))
-    selectWords(nameBuffer)
+    selectWords(nameBuffer, targetWordCount)
       .map(_.capitalize)
       .mkString(" ")
   }
@@ -49,9 +49,9 @@ class PositionFrequencyJournalTitleGenerator(val sourceTitles: Iterable[String],
    *                            positions.
    * @return A sequence of words that can be combined to make a title
    */
-  private def selectWords(topWordsPerPosition: Seq[Seq[String]]): Seq[String] =
+  private def selectWords(topWordsPerPosition: Seq[Seq[String]], targetWordCount: Int): Seq[String] =
     topWordsPerPosition.zipWithIndex.foldLeft(Seq[String]()) {
-      case (currentWords, (potentialWords, position)) =>
+      case (currentWords, (potentialWords, position)) if position < targetWordCount =>
         val positionCandidates = potentialWords.foldLeft(Seq[String]()) {
           // If the current list of candidates is smaller than the max per position…
           case (validWords, word) if validWords.size < topWordCandidateCount &&
@@ -67,6 +67,7 @@ class PositionFrequencyJournalTitleGenerator(val sourceTitles: Iterable[String],
           case _ =>
             currentWords
         }
+      case (currentWords, _) => currentWords
     }
 
   /**
