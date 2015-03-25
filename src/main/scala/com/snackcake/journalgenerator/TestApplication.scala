@@ -17,7 +17,7 @@ object TestApplication {
    * Main method for testing.
    */
   def main(args: Array[String]) {
-    val scraper = new SourceTitleScraper("http://scholarlyoa.com/individual-journals/", "div.entry ul a")
+    val scraper = new SourceTitleScraper("http://scholarlyoa.com/individual-journals/", "div.entry > ul li a")
     val titles = scraper.scrape
 
     val modelpath = new File("src/main/resources/english-left3words-distsim.tagger").getAbsolutePath
