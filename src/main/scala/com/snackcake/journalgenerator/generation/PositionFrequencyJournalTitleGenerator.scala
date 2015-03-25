@@ -11,7 +11,9 @@ package com.snackcake.journalgenerator.generation
  */
 class PositionFrequencyJournalTitleGenerator(val sourceTitles: Iterable[String],
                                              val minimumWordFrequency: Int = 3,
-                                             val topWordCandidateCount: Int =  5) extends JournalTitleGenerator with PositionFrequencyMapFactory {
+                                             val topWordCandidateCount: Int =  5) extends JournalTitleGenerator {
+
+  private val frequencyMapFactory = new PositionFrequencyMapFactory
 
   /**
    * @return Words that aren't allowed at the end of a generated title.
@@ -35,7 +37,7 @@ class PositionFrequencyJournalTitleGenerator(val sourceTitles: Iterable[String],
    * @return A new, formatted title
    */
   def generateTitle(targetWordCount: Int = 9): String = {
-    val indexFrequencyMap = buildPositionFrequencyMap(sourceTitles)
+    val indexFrequencyMap = frequencyMapFactory.buildPositionFrequencyMap(sourceTitles)
     val nameBuffer = indexFrequencyMap.map(_.filter(_._2 >= minimumWordFrequency).map(_._1))
     selectWords(nameBuffer, targetWordCount)
       .map(_.capitalize)

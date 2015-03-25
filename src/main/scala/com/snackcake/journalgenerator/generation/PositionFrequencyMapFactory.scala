@@ -1,6 +1,8 @@
 package com.snackcake.journalgenerator.generation
 
-import scala.collection.immutable.{TreeSet, TreeMap}
+import com.snackcake.journalgenerator.analysis.WordNormalizer
+
+import scala.collection.immutable.TreeSet
 import scala.collection.mutable
 
 /**
@@ -8,7 +10,7 @@ import scala.collection.mutable
  * 
  * @author Josh Klun (jklun@nerdery.com)
  */
-trait PositionFrequencyMapFactory extends WordNormalizer {
+class PositionFrequencyMapFactory extends WordNormalizer {
 
   private type MutablePositionFrequencyMap = mutable.Buffer[mutable.Map[String, Int]]
   protected type PositionFrequencyMap = Seq[Map[String, Int]]
@@ -21,7 +23,7 @@ trait PositionFrequencyMapFactory extends WordNormalizer {
    * @param sourceTitles An iterable of source titles to build a position frequency map for
    * @return A new position frequency map for the input titles.
    */
-  protected def buildPositionFrequencyMap(sourceTitles: Iterable[String]): Seq[Seq[(String, Int)]] = {
+  def buildPositionFrequencyMap(sourceTitles: Iterable[String]): Seq[Seq[(String, Int)]] = {
     val splitTitles: Iterable[Array[String]] = sourceTitles.map(_.split("\\s+"))
     val positionFrequencyMap = buildEmptyPositionFrequencyMap(splitTitles)
     splitTitles.foreach {
