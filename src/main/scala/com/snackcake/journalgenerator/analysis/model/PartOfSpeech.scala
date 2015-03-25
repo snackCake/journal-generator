@@ -1,6 +1,8 @@
 package com.snackcake.journalgenerator.analysis.model
 
 /**
+ * Part of Speech codes, as defined by NYU here: http://cs.nyu.edu/grishman/jet/guide/PennPOS.html)
+ *
  * @author Josh Klun (jklun@nerdery.com)
  */
 sealed trait PartOfSpeech {
