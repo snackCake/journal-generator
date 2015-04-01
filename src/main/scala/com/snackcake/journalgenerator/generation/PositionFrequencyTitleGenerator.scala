@@ -1,5 +1,8 @@
 package com.snackcake.journalgenerator.generation
 
+import com.snackcake.journalgenerator.generation.filter.PositionFilter
+import com.snackcake.journalgenerator.generation.selection.WordSelection
+
 /**
  * A generator that takes in a set of existing journal titles, analyzes them, and generates new titles by combining existing words.
  *
@@ -9,11 +12,11 @@ package com.snackcake.journalgenerator.generation
  * @param topWordCandidateCount The number of top words in a position to select from. Default: 5
  * @author Josh Klun (jmklun@gmail.com)
  */
-class PositionFrequencyJournalTitleGenerator(val sourceTitles: Iterable[String],
-                                             val minimumWordFrequency: Int = 3,
-                                             val topWordCandidateCount: Int =  5) extends JournalTitleGenerator {
-
-  private val frequencyMapFactory = new PositionFrequencyMapFactory
+abstract class PositionFrequencyTitleGenerator(val sourceTitles: Iterable[String],
+                                               private val filters: Seq[PositionFilter] = Seq(),
+                                               private val frequencyMapFactory: PositionFrequencyMapFactory = new PositionFrequencyMapFactory,
+                                               val minimumWordFrequency: Int = 3,
+                                               val topWordCandidateCount: Int = 5) extends JournalTitleGenerator with WordSelection {
 
   /**
    * @return Words that aren't allowed at the end of a generated title.
@@ -38,10 +41,30 @@ class PositionFrequencyJournalTitleGenerator(val sourceTitles: Iterable[String],
    */
   def generateTitle(targetWordCount: Int = 9): String = {
     val indexFrequencyMap = frequencyMapFactory.buildPositionFrequencyMap(sourceTitles)
-    val nameBuffer = indexFrequencyMap.map(_.filter(_._2 >= minimumWordFrequency).map(_._1))
+    val minimumCountFiltered = filterOnWordCount(indexFrequencyMap)
+    val nameBuffer = applyFilters(minimumCountFiltered)
     selectWords(nameBuffer, targetWordCount)
       .map(_.capitalize)
       .mkString(" ")
+  }
+
+  private def filterOnWordCount(indexFrequencyMap: Seq[Seq[(String, Int)]]): Seq[Seq[String]] = {
+    indexFrequencyMap.map {
+      _.filter {
+        case (word, count) => count >= minimumWordFrequency
+      }.map(_._1)
+    }
+  }
+
+  private def applyFilters(nameBuffer: Seq[Seq[String]]): Seq[Seq[String]] = {
+    nameBuffer.zipWithIndex.map {
+      case (positionWords, index) =>
+        var filteredWords = positionWords
+        filters.foreach {
+          filter => filteredWords = filter.filterWords(filteredWords, index)
+        }
+        filteredWords
+    }
   }
 
   /**
@@ -65,7 +88,7 @@ class PositionFrequencyJournalTitleGenerator(val sourceTitles: Iterable[String],
         }
         positionCandidates match {
           case nonDuplicatePotentialWords if nonDuplicatePotentialWords.nonEmpty =>
-            currentWords :+ scala.util.Random.shuffle(nonDuplicatePotentialWords).head
+            currentWords :+ selectWord(nonDuplicatePotentialWords, position)
           case _ =>
             currentWords
         }
