@@ -3,6 +3,9 @@ package com.snackcake.journalgenerator.generation.filter
 import com.snackcake.journalgenerator.analysis.model.{PartOfSpeech, WordAnalysisResult}
 
 /**
+ * Filter that randomly selects a part of speech to use at a given position, weighted by part of speech frequency, and filters out all
+ * words that are not marked as being that part of speech.
+ *
  * @author Josh Klun (jklun@nerdery.com)
  */
 class WeightedPartOfSpeechFilter(private val analysisResults: Seq[Seq[WordAnalysisResult]]) extends PositionFilter {

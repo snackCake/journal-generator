@@ -18,7 +18,7 @@ class PositionFrequencyMapFactory extends WordNormalizer {
 
   /**
    * Based on the input titles, build a position frequency map. Each entry in the sequence represents a position in the source titles. Each
-   * entry is a map of source title words to counts for how frequent the word is in a given position.
+   * entry is a sequence of tuples of source title words with counts for how frequent the word is in a given position.
    *
    * @param sourceTitles An iterable of source titles to build a position frequency map for
    * @return A new position frequency map for the input titles.

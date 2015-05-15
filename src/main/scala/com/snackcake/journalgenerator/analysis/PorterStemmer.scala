@@ -3,6 +3,8 @@ package com.snackcake.journalgenerator.analysis
 import org.tartarus.Stemmer
 
 /**
+ * PorterStemmer is a Scala wrapper for the [[org.tartarus.Stemmer]] class.
+ *
  * @author Josh Klun (jklun@nerdery.com)
  */
 class PorterStemmer {
