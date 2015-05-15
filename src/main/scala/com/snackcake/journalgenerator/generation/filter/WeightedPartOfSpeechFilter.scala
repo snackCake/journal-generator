@@ -10,6 +10,10 @@ import com.snackcake.journalgenerator.analysis.model.{PartOfSpeech, WordAnalysis
  */
 class WeightedPartOfSpeechFilter(private val analysisResults: Seq[Seq[WordAnalysisResult]]) extends PositionFilter {
 
+  /**
+   * Take a sequence of titles, split into sequences of words within a title and "invert" the 2 dimensional sequence, so that it is a
+   * sequence of title position-associated sequences of words for that position.
+   */
   private def invertAnalysis(inputAnalysis: Seq[Seq[WordAnalysisResult]]): Seq[Seq[WordAnalysisResult]] = {
     (0 to inputAnalysis.maxBy(_.length).length - 1).map {
       index =>
@@ -28,7 +32,6 @@ class WeightedPartOfSpeechFilter(private val analysisResults: Seq[Seq[WordAnalys
 
 
   override def filterWords(words: Seq[String], position: Int): Seq[String] = {
-
     val currentPositionAnalysis = positionalAnalysis(position)
     val originalPositionWordCount = currentPositionAnalysis.size
     val weightSelector = scala.util.Random.nextDouble()
