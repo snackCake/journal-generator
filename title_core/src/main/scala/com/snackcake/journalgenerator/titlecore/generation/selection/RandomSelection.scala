@@ -1,4 +1,4 @@
-package com.snackcake.journalgenerator.generation.selection
+package com.snackcake.journalgenerator.titlecore.generation.selection
 
 /**
  * @author Josh Klun (jklun@nerdery.com)

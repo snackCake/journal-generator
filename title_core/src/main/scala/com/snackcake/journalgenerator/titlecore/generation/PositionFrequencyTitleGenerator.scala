@@ -1,7 +1,7 @@
-package com.snackcake.journalgenerator.generation
+package com.snackcake.journalgenerator.titlecore.generation
 
-import com.snackcake.journalgenerator.generation.filter.PositionFilter
-import com.snackcake.journalgenerator.generation.selection.WordSelection
+import com.snackcake.journalgenerator.titlecore.generation.filter.PositionFilter
+import com.snackcake.journalgenerator.titlecore.generation.selection.WordSelection
 
 /**
  * A generator that takes in a set of existing journal titles, analyzes them, and generates new titles by combining existing words.

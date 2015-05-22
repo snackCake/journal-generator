@@ -1,4 +1,4 @@
-package com.snackcake.journalgenerator.generation.filter
+package com.snackcake.journalgenerator.titlecore.generation.filter
 
 /**
  * Interface for a filter that removes words that aren't valid at the given position in a title.

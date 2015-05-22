@@ -1,6 +1,7 @@
-package com.snackcake.journalgenerator.generation.filter
+package com.snackcake.journalgenerator.titlecore.generation.filter
 
-import com.snackcake.journalgenerator.analysis.model.{PartOfSpeech, WordAnalysisResult}
+import com.snackcake.journalgenerator.titlecore.analysis.model.WordAnalysisResult
+import com.snackcake.journalgenerator.titlecore.analysis.model.{PartOfSpeech, WordAnalysisResult}
 
 /**
  * Filter that randomly selects a part of speech to use at a given position, weighted by part of speech frequency, and filters out all

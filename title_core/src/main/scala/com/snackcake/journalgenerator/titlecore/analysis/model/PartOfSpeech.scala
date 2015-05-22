@@ -1,4 +1,4 @@
-package com.snackcake.journalgenerator.analysis.model
+package com.snackcake.journalgenerator.titlecore.analysis.model
 
 /**
  * Part of Speech codes, as defined by NYU here: http://cs.nyu.edu/grishman/jet/guide/PennPOS.html

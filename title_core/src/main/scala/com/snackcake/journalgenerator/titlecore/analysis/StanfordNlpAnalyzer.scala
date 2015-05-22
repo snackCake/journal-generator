@@ -1,4 +1,4 @@
-package com.snackcake.journalgenerator.analysis
+package com.snackcake.journalgenerator.titlecore.analysis
 
 import java.io.File
 import java.util.Properties

@@ -1,5 +1,4 @@
-package com.snackcake.journalgenerator.sourcedata
-
+package com.snackcake.journalgenerator.titlecore.sourcedata
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document

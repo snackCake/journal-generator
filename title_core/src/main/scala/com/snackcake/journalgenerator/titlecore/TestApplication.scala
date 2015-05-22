@@ -1,12 +1,13 @@
-package com.snackcake.journalgenerator
+package com.snackcake.journalgenerator.titlecore
 
 import java.io.File
 
-import com.snackcake.journalgenerator.analysis.{WordNormalizer, CompositeTitleAnalyzer, PorterStemmer, StanfordNlpAnalyzer}
-import com.snackcake.journalgenerator.generation.PositionFrequencyTitleGenerator
-import com.snackcake.journalgenerator.generation.filter.WeightedPartOfSpeechFilter
-import com.snackcake.journalgenerator.generation.selection.RandomSelection
-import com.snackcake.journalgenerator.sourcedata.SourceTitleScraper
+import com.snackcake.journalgenerator.titlecore.analysis.CompositeTitleAnalyzer
+import com.snackcake.journalgenerator.titlecore.analysis.{CompositeTitleAnalyzer, StanfordNlpAnalyzer, WordNormalizer, PorterStemmer}
+import com.snackcake.journalgenerator.titlecore.generation.PositionFrequencyTitleGenerator
+import com.snackcake.journalgenerator.titlecore.generation.filter.WeightedPartOfSpeechFilter
+import com.snackcake.journalgenerator.titlecore.generation.selection.RandomSelection
+import com.snackcake.journalgenerator.titlecore.sourcedata.SourceTitleScraper
 
 /**
  * Simple CLI application for testing the generator.

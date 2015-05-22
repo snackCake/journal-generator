@@ -1,4 +1,4 @@
-package com.snackcake.journalgenerator.analysis
+package com.snackcake.journalgenerator.titlecore.analysis
 
 /**
  * Trait the allows an object to normalize words.

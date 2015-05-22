@@ -1,6 +1,6 @@
-package com.snackcake.journalgenerator.generation
+package com.snackcake.journalgenerator.titlecore.generation
 
-import com.snackcake.journalgenerator.analysis.WordNormalizer
+import com.snackcake.journalgenerator.titlecore.analysis.WordNormalizer
 
 import scala.collection.immutable.TreeSet
 import scala.collection.mutable

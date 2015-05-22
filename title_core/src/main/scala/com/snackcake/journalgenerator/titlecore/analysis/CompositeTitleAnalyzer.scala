@@ -1,10 +1,10 @@
-package com.snackcake.journalgenerator.analysis
+package com.snackcake.journalgenerator.titlecore.analysis
 
-import com.snackcake.journalgenerator.analysis.model.{PartOfSpeechFactory, WordAnalysisResult}
+import com.snackcake.journalgenerator.titlecore.analysis.model.{PartOfSpeechFactory, WordAnalysisResult}
 
 /**
  * Performs several types of analysis on the words in a title and generates a sequence of
- * [[com.snackcake.journalgenerator.analysis.model.WordAnalysisResult]] objects describing the words in the title.
+ * [[WordAnalysisResult]] objects describing the words in the title.
  *
  * @author Josh Klun (jklun@nerdery.com)
  */
@@ -13,7 +13,7 @@ class CompositeTitleAnalyzer(wordNormalizer: WordNormalizer, stemmer: PorterStem
   private val partOfSpeechFactory = new PartOfSpeechFactory
 
   /**
-   * Analyze the words in the given title and return a sequence of [[com.snackcake.journalgenerator.analysis.model.WordAnalysisResult]]
+   * Analyze the words in the given title and return a sequence of [[WordAnalysisResult]]
    * with the results.
    */
   def analyzeTitle(title: String): Seq[WordAnalysisResult] = {

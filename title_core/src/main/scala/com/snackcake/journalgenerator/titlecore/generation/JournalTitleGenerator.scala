@@ -1,4 +1,4 @@
-package com.snackcake.journalgenerator.generation
+package com.snackcake.journalgenerator.titlecore.generation
 
 /**
  * Trait that defines the basic title generator interface.

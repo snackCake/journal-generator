@@ -1,4 +1,4 @@
-package com.snackcake.journalgenerator.analysis.model
+package com.snackcake.journalgenerator.titlecore.analysis.model
 
 /**
  * WordAnalysisResult holds everything that is known about a word that appeared at a given point in a given title.

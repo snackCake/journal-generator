@@ -2,4 +2,6 @@ name := "journal-generator-title-generator-web"
 
 version := "1.0"
 
-scalaVersion := "2.11.5"
+organization  := "com.snackcake"
+
+scalaVersion := "2.11.6"
