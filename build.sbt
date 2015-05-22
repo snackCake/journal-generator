@@ -4,8 +4,13 @@ version := "1.0"
 
 scalaVersion := "2.11.5"
 
-libraryDependencies ++= Seq(
-  "org.jsoup" % "jsoup" % "1.8.1",
-  "edu.stanford.nlp" % "stanford-corenlp" % "3.5.1"
-)
+lazy val root =
+  project
+    .in( file(".") )
+    .aggregate(title_core, title_analysis_service, title_generator_web)
 
+lazy val title_core = project
+
+lazy val title_analysis_service = project.dependsOn(title_core)
+
+lazy val title_generator_web = project
